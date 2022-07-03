@@ -1,0 +1,43 @@
+name: "build on macos"
+
+
+on:
+  push:
+    branches: [ main ]
+  watch:
+    types: started
+
+jobs:
+
+  macos-latest-vagrant:
+      name: "build"
+      runs-on: macos-latest
+      steps:
+      - name: "deploy"
+        run:   | 
+          mkdir ~/vms
+          cd ~/vms
+          git clone https://github.com/chainsx/virtualization-rs
+          cd virtualization-rs
+          make release
+      - name: Upload bin directory
+        uses: actions/upload-artifact@master
+        if: env.UPLOAD_BIN_DIR == 'true'
+        with:
+          name: efi_target
+          path: ~/vms/virtualization-rs/target/release/examples/simplevm
+
+      - name: Organize files
+        id: organize
+        if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+        run: |
+          cd /workspace/uefi_output
+          echo "::set-env name=FIRMWARE::$PWD"
+          echo "::set-output name=status::success"
+      - name: Upload firmware directory
+        uses: actions/upload-artifact@master
+        if: steps.organize.outputs.status == 'success' && !cancelled()
+        with:
+          name: uefi_firmware
+          path: ${{ env.FIRMWARE }}
+          
