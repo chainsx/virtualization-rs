@@ -1,5 +1,11 @@
 name: "build on macos"
 
+env:
+  REPO_BRANCH: master
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+  UPLOAD_BIN_DIR: false
+  UPLOAD_FIRMWARE: true
+  TZ: Asia/Shanghai
 
 on:
   push:
@@ -31,7 +37,7 @@ jobs:
         id: organize
         if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
         run: |
-          cd /workspace/uefi_output
+          cd ~/vms/virtualization-rs/target/release/examples
           echo "::set-env name=FIRMWARE::$PWD"
           echo "::set-output name=status::success"
       - name: Upload firmware directory
